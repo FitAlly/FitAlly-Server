@@ -1,6 +1,5 @@
 package com.fitally.backend.common.exception;
 
-import com.fitally.backend.common.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 
