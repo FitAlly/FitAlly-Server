@@ -127,6 +127,32 @@ public class User {
                 .build();
     }
 
+    public static User createSocialUser(String email,
+                                        String provider,
+                                        String providerId,
+                                        String nickname,
+                                        String profileImageUrl) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return User.builder()
+                .email(email)
+                .passwordHash(null)
+                .provider(provider)
+                .providerId(providerId)
+                .nickname(nickname)
+                .birthdate(null)
+                .profileImageUrl(profileImageUrl)
+                .isAdultVerified(false)
+                .bio(null)
+                .location(null)
+                .createdAt(now)
+                .updatedAt(now)
+                .fcmToken(null)
+                .deletedAt(null)
+                .role(Role.USER)
+                .build();
+    }
+
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
     }

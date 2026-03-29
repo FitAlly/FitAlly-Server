@@ -1,0 +1,25 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres
+    username: postgres.drtpalomzthzdteeqive
+    password: "fitally1234@"
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: false
+
+jwt:
+  access-token-expiration: 3600000
+  refresh-token-expiration: 1209600000
+  secret: "this-is-a-very-long-key-for-fitally-jwt-token-example-1234567890"
