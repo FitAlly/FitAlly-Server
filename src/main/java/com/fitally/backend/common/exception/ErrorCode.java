@@ -22,6 +22,8 @@ public enum ErrorCode {
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_004", "만료된 토큰입니다."),
     LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_005", "이메일 또는 비밀번호가 올바르지 않습니다."),
     INVALID_LOGIN_PROVIDER(HttpStatus.BAD_REQUEST, "AUTH_006", "일반 로그인 계정이 아닙니다."),
+    SOCIAL_SIGNUP_REQUIRED(HttpStatus.NOT_FOUND, "AUTH_007", "소셜 회원가입이 필요합니다."),
+    INVALID_SOCIAL_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_008", "유효하지 않은 소셜 토큰입니다."),
 
     // 프로필
     PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "WORKOUT_001", "운동 정보를 찾을 수 없습니다."),
