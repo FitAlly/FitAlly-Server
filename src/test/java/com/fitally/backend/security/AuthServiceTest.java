@@ -2,15 +2,21 @@ package com.fitally.backend.security;
 
 import com.fitally.backend.common.exception.BusinessException;
 import com.fitally.backend.common.exception.ErrorCode;
+import com.fitally.backend.dto.auth.request.AppleLoginRequest;
+import com.fitally.backend.dto.auth.request.AppleSignupRequest;
 import com.fitally.backend.dto.auth.request.KakaoLoginRequest;
 import com.fitally.backend.dto.auth.request.KakaoSignupRequest;
 import com.fitally.backend.dto.auth.request.LoginRequest;
+import com.fitally.backend.dto.auth.request.NaverLoginRequest;
+import com.fitally.backend.dto.auth.request.NaverSignupRequest;
 import com.fitally.backend.dto.auth.request.SignupRequest;
-import com.fitally.backend.dto.auth.response.KakaoUserInfo;
+import com.fitally.backend.dto.auth.response.SocialUserInfo;
 import com.fitally.backend.dto.auth.response.SignupResponse;
 import com.fitally.backend.dto.auth.response.TokenResponse;
 import com.fitally.backend.entity.User;
+import com.fitally.backend.external.apple.AppleTokenVerifier;
 import com.fitally.backend.external.kakao.KakaoApliClient;
+import com.fitally.backend.external.naver.NaverApiClient;
 import com.fitally.backend.repository.UserRepository;
 import com.fitally.backend.security.jwt.JwtTokenProvider;
 import com.fitally.backend.service.AuthService;
@@ -49,6 +55,12 @@ class AuthServiceTest {
 
     @Mock
     private KakaoApliClient kakaoApiClient;
+
+    @Mock
+    private NaverApiClient naverApiClient;
+
+    @Mock
+    private AppleTokenVerifier appleTokenVerifier;
 
     @InjectMocks
     private AuthService authService;
@@ -224,7 +236,8 @@ class AuthServiceTest {
         void login_with_kakao_success() {
             KakaoLoginRequest request = new KakaoLoginRequest("kakao-access-token");
 
-            KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "kakao",
                     "123456",
                     "kakao@test.com",
                     "카카오유저",
@@ -239,7 +252,7 @@ class AuthServiceTest {
                     "http://image.test/profile.png"
             );
 
-            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
+            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(socialUserInfo);
             when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", "123456"))
                     .thenReturn(Optional.of(user));
             when(jwtTokenProvider.createAccessToken(user)).thenReturn("access-token");
@@ -258,14 +271,15 @@ class AuthServiceTest {
         void login_with_kakao_fail_signup_required() {
             KakaoLoginRequest request = new KakaoLoginRequest("kakao-access-token");
 
-            KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "kakao",
                     "123456",
                     "kakao@test.com",
                     "카카오유저",
                     "http://image.test/profile.png"
             );
 
-            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
+            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(socialUserInfo);
             when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", "123456"))
                     .thenReturn(Optional.empty());
 
@@ -290,7 +304,8 @@ class AuthServiceTest {
                     "새닉네임"
             );
 
-            KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "kakao",
                     "123456",
                     "kakao@test.com",
                     "카카오기본닉네임",
@@ -305,7 +320,7 @@ class AuthServiceTest {
                     "http://image.test/profile.png"
             );
 
-            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
+            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(socialUserInfo);
             when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", "123456"))
                     .thenReturn(Optional.empty());
             when(userRepository.findByEmailAndDeletedAtIsNull("kakao@test.com"))
@@ -341,14 +356,15 @@ class AuthServiceTest {
                     "새닉네임"
             );
 
-            KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "kakao",
                     "123456",
                     null,
                     "카카오기본닉네임",
                     "http://image.test/profile.png"
             );
 
-            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
+            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(socialUserInfo);
 
             BusinessException exception = assertThrows(
                     BusinessException.class,
@@ -366,7 +382,8 @@ class AuthServiceTest {
                     "새닉네임"
             );
 
-            KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "kakao",
                     "123456",
                     "kakao@test.com",
                     "카카오기본닉네임",
@@ -381,7 +398,7 @@ class AuthServiceTest {
                     "http://image.test/profile.png"
             );
 
-            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
+            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(socialUserInfo);
             when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", "123456"))
                     .thenReturn(Optional.of(existingKakaoUser));
 
@@ -401,7 +418,8 @@ class AuthServiceTest {
                     "새닉네임"
             );
 
-            KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "kakao",
                     "123456",
                     "kakao@test.com",
                     "카카오기본닉네임",
@@ -415,7 +433,7 @@ class AuthServiceTest {
                     null
             );
 
-            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
+            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(socialUserInfo);
             when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", "123456"))
                     .thenReturn(Optional.empty());
             when(userRepository.findByEmailAndDeletedAtIsNull("kakao@test.com"))
@@ -437,14 +455,15 @@ class AuthServiceTest {
                     "중복닉네임"
             );
 
-            KakaoUserInfo kakaoUserInfo = new KakaoUserInfo(
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "kakao",
                     "123456",
                     "kakao@test.com",
                     "카카오기본닉네임",
                     "http://image.test/profile.png"
             );
 
-            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(kakaoUserInfo);
+            when(kakaoApiClient.getUserInfo("kakao-access-token")).thenReturn(socialUserInfo);
             when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", "123456"))
                     .thenReturn(Optional.empty());
             when(userRepository.findByEmailAndDeletedAtIsNull("kakao@test.com"))
@@ -455,6 +474,442 @@ class AuthServiceTest {
             BusinessException exception = assertThrows(
                     BusinessException.class,
                     () -> authService.signupWithKakao(request)
+            );
+
+            assertEquals(ErrorCode.DUPLICATE_NICKNAME, exception.getErrorCode());
+        }
+    }
+
+    @Nested
+    @DisplayName("네이버 로그인 테스트")
+    class NaverLoginTest {
+
+        @Test
+        @DisplayName("네이버 로그인 성공")
+        void login_with_naver_success() {
+            NaverLoginRequest request = new NaverLoginRequest("naver-access-token");
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "naver",
+                    "naver-123456",
+                    "naver@test.com",
+                    "네이버유저",
+                    "http://image.test/naver.png"
+            );
+
+            User user = User.createSocialUser(
+                    "naver@test.com",
+                    "naver",
+                    "naver-123456",
+                    "네이버유저",
+                    "http://image.test/naver.png"
+            );
+
+            when(naverApiClient.getUserInfo("naver-access-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("naver", "naver-123456"))
+                    .thenReturn(Optional.of(user));
+            when(jwtTokenProvider.createAccessToken(user)).thenReturn("access-token");
+            when(jwtTokenProvider.createRefreshToken(user)).thenReturn("refresh-token");
+
+            TokenResponse response = authService.loginWithNaver(request);
+
+            assertNotNull(response);
+            assertEquals("Bearer", response.getGrantType());
+            assertEquals("access-token", response.getAccessToken());
+            assertEquals("refresh-token", response.getRefreshToken());
+        }
+
+        @Test
+        @DisplayName("네이버 로그인 실패 - 회원가입 필요")
+        void login_with_naver_fail_signup_required() {
+            NaverLoginRequest request = new NaverLoginRequest("naver-access-token");
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "naver",
+                    "naver-123456",
+                    "naver@test.com",
+                    "네이버유저",
+                    "http://image.test/naver.png"
+            );
+
+            when(naverApiClient.getUserInfo("naver-access-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("naver", "naver-123456"))
+                    .thenReturn(Optional.empty());
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> authService.loginWithNaver(request)
+            );
+
+            assertEquals(ErrorCode.SOCIAL_SIGNUP_REQUIRED, exception.getErrorCode());
+        }
+    }
+
+    @Nested
+    @DisplayName("네이버 회원가입 테스트")
+    class NaverSignupTest {
+
+        @Test
+        @DisplayName("네이버 회원가입 성공")
+        void signup_with_naver_success() {
+            NaverSignupRequest request = new NaverSignupRequest(
+                    "naver-access-token",
+                    "네이버닉네임"
+            );
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "naver",
+                    "naver-123456",
+                    "naver@test.com",
+                    "네이버기본닉네임",
+                    "http://image.test/naver.png"
+            );
+
+            User savedUser = User.createSocialUser(
+                    "naver@test.com",
+                    "naver",
+                    "naver-123456",
+                    "네이버닉네임",
+                    "http://image.test/naver.png"
+            );
+
+            when(naverApiClient.getUserInfo("naver-access-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("naver", "naver-123456"))
+                    .thenReturn(Optional.empty());
+            when(userRepository.findByEmailAndDeletedAtIsNull("naver@test.com"))
+                    .thenReturn(Optional.empty());
+            when(userRepository.existsByNicknameAndDeletedAtIsNull("네이버닉네임"))
+                    .thenReturn(false);
+            when(userRepository.save(any(User.class))).thenReturn(savedUser);
+            when(jwtTokenProvider.createAccessToken(savedUser)).thenReturn("access-token");
+            when(jwtTokenProvider.createRefreshToken(savedUser)).thenReturn("refresh-token");
+
+            TokenResponse response = authService.signupWithNaver(request);
+
+            assertNotNull(response);
+            assertEquals("Bearer", response.getGrantType());
+            assertEquals("access-token", response.getAccessToken());
+            assertEquals("refresh-token", response.getRefreshToken());
+        }
+
+        @Test
+        @DisplayName("네이버 회원가입 실패 - 이미 네이버 회원 존재")
+        void signup_with_naver_fail_duplicate_social_user() {
+            NaverSignupRequest request = new NaverSignupRequest(
+                    "naver-access-token",
+                    "네이버닉네임"
+            );
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "naver",
+                    "naver-123456",
+                    "naver@test.com",
+                    "네이버기본닉네임",
+                    "http://image.test/naver.png"
+            );
+
+            User existingNaverUser = User.createSocialUser(
+                    "naver@test.com",
+                    "naver",
+                    "naver-123456",
+                    "기존네이버회원",
+                    "http://image.test/naver.png"
+            );
+
+            when(naverApiClient.getUserInfo("naver-access-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("naver", "naver-123456"))
+                    .thenReturn(Optional.of(existingNaverUser));
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> authService.signupWithNaver(request)
+            );
+
+            assertEquals(ErrorCode.DUPLICATE_EMAIL, exception.getErrorCode());
+        }
+
+        @Test
+        @DisplayName("네이버 회원가입 실패 - 같은 이메일의 일반 회원 존재")
+        void signup_with_naver_fail_invalid_login_provider() {
+            NaverSignupRequest request = new NaverSignupRequest(
+                    "naver-access-token",
+                    "네이버닉네임"
+            );
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "naver",
+                    "naver-123456",
+                    "naver@test.com",
+                    "네이버기본닉네임",
+                    "http://image.test/naver.png"
+            );
+
+            User emailUser = User.createEmailUser(
+                    "naver@test.com",
+                    "encoded-password",
+                    "일반회원",
+                    null
+            );
+
+            when(naverApiClient.getUserInfo("naver-access-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("naver", "naver-123456"))
+                    .thenReturn(Optional.empty());
+            when(userRepository.findByEmailAndDeletedAtIsNull("naver@test.com"))
+                    .thenReturn(Optional.of(emailUser));
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> authService.signupWithNaver(request)
+            );
+
+            assertEquals(ErrorCode.INVALID_LOGIN_PROVIDER, exception.getErrorCode());
+        }
+
+        @Test
+        @DisplayName("네이버 회원가입 실패 - 닉네임 중복")
+        void signup_with_naver_fail_duplicate_nickname() {
+            NaverSignupRequest request = new NaverSignupRequest(
+                    "naver-access-token",
+                    "중복닉네임"
+            );
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "naver",
+                    "naver-123456",
+                    "naver@test.com",
+                    "네이버기본닉네임",
+                    "http://image.test/naver.png"
+            );
+
+            when(naverApiClient.getUserInfo("naver-access-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("naver", "naver-123456"))
+                    .thenReturn(Optional.empty());
+            when(userRepository.findByEmailAndDeletedAtIsNull("naver@test.com"))
+                    .thenReturn(Optional.empty());
+            when(userRepository.existsByNicknameAndDeletedAtIsNull("중복닉네임"))
+                    .thenReturn(true);
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> authService.signupWithNaver(request)
+            );
+
+            assertEquals(ErrorCode.DUPLICATE_NICKNAME, exception.getErrorCode());
+        }
+    }
+
+    @Nested
+    @DisplayName("애플 로그인 테스트")
+    class AppleLoginTest {
+
+        @Test
+        @DisplayName("애플 로그인 성공")
+        void login_with_apple_success() {
+            AppleLoginRequest request = new AppleLoginRequest("apple-identity-token");
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "apple",
+                    "apple-sub-123456",
+                    "apple@test.com",
+                    null,
+                    null
+            );
+
+            User user = User.createSocialUser(
+                    "apple@test.com",
+                    "apple",
+                    "apple-sub-123456",
+                    "애플유저",
+                    null
+            );
+
+            when(appleTokenVerifier.verify("apple-identity-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("apple", "apple-sub-123456"))
+                    .thenReturn(Optional.of(user));
+            when(jwtTokenProvider.createAccessToken(user)).thenReturn("access-token");
+            when(jwtTokenProvider.createRefreshToken(user)).thenReturn("refresh-token");
+
+            TokenResponse response = authService.loginWithApple(request);
+
+            assertNotNull(response);
+            assertEquals("Bearer", response.getGrantType());
+            assertEquals("access-token", response.getAccessToken());
+            assertEquals("refresh-token", response.getRefreshToken());
+        }
+
+        @Test
+        @DisplayName("애플 로그인 실패 - 회원가입 필요")
+        void login_with_apple_fail_signup_required() {
+            AppleLoginRequest request = new AppleLoginRequest("apple-identity-token");
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "apple",
+                    "apple-sub-123456",
+                    "apple@test.com",
+                    null,
+                    null
+            );
+
+            when(appleTokenVerifier.verify("apple-identity-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("apple", "apple-sub-123456"))
+                    .thenReturn(Optional.empty());
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> authService.loginWithApple(request)
+            );
+
+            assertEquals(ErrorCode.SOCIAL_SIGNUP_REQUIRED, exception.getErrorCode());
+        }
+    }
+
+    @Nested
+    @DisplayName("애플 회원가입 테스트")
+    class AppleSignupTest {
+
+        @Test
+        @DisplayName("애플 회원가입 성공")
+        void signup_with_apple_success() {
+            AppleSignupRequest request = new AppleSignupRequest(
+                    "apple-identity-token",
+                    "애플닉네임"
+            );
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "apple",
+                    "apple-sub-123456",
+                    "apple@test.com",
+                    null,
+                    null
+            );
+
+            User savedUser = User.createSocialUser(
+                    "apple@test.com",
+                    "apple",
+                    "apple-sub-123456",
+                    "애플닉네임",
+                    null
+            );
+
+            when(appleTokenVerifier.verify("apple-identity-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("apple", "apple-sub-123456"))
+                    .thenReturn(Optional.empty());
+            when(userRepository.findByEmailAndDeletedAtIsNull("apple@test.com"))
+                    .thenReturn(Optional.empty());
+            when(userRepository.existsByNicknameAndDeletedAtIsNull("애플닉네임"))
+                    .thenReturn(false);
+            when(userRepository.save(any(User.class))).thenReturn(savedUser);
+            when(jwtTokenProvider.createAccessToken(savedUser)).thenReturn("access-token");
+            when(jwtTokenProvider.createRefreshToken(savedUser)).thenReturn("refresh-token");
+
+            TokenResponse response = authService.signupWithApple(request);
+
+            assertNotNull(response);
+            assertEquals("Bearer", response.getGrantType());
+            assertEquals("access-token", response.getAccessToken());
+            assertEquals("refresh-token", response.getRefreshToken());
+        }
+
+        @Test
+        @DisplayName("애플 회원가입 실패 - 이미 애플 회원 존재")
+        void signup_with_apple_fail_duplicate_social_user() {
+            AppleSignupRequest request = new AppleSignupRequest(
+                    "apple-identity-token",
+                    "애플닉네임"
+            );
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "apple",
+                    "apple-sub-123456",
+                    "apple@test.com",
+                    null,
+                    null
+            );
+
+            User existingAppleUser = User.createSocialUser(
+                    "apple@test.com",
+                    "apple",
+                    "apple-sub-123456",
+                    "기존애플회원",
+                    null
+            );
+
+            when(appleTokenVerifier.verify("apple-identity-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("apple", "apple-sub-123456"))
+                    .thenReturn(Optional.of(existingAppleUser));
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> authService.signupWithApple(request)
+            );
+
+            assertEquals(ErrorCode.DUPLICATE_EMAIL, exception.getErrorCode());
+        }
+
+        @Test
+        @DisplayName("애플 회원가입 실패 - 같은 이메일의 일반 회원 존재")
+        void signup_with_apple_fail_invalid_login_provider() {
+            AppleSignupRequest request = new AppleSignupRequest(
+                    "apple-identity-token",
+                    "애플닉네임"
+            );
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "apple",
+                    "apple-sub-123456",
+                    "apple@test.com",
+                    null,
+                    null
+            );
+
+            User emailUser = User.createEmailUser(
+                    "apple@test.com",
+                    "encoded-password",
+                    "일반회원",
+                    null
+            );
+
+            when(appleTokenVerifier.verify("apple-identity-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("apple", "apple-sub-123456"))
+                    .thenReturn(Optional.empty());
+            when(userRepository.findByEmailAndDeletedAtIsNull("apple@test.com"))
+                    .thenReturn(Optional.of(emailUser));
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> authService.signupWithApple(request)
+            );
+
+            assertEquals(ErrorCode.INVALID_LOGIN_PROVIDER, exception.getErrorCode());
+        }
+
+        @Test
+        @DisplayName("애플 회원가입 실패 - 닉네임 중복")
+        void signup_with_apple_fail_duplicate_nickname() {
+            AppleSignupRequest request = new AppleSignupRequest(
+                    "apple-identity-token",
+                    "중복닉네임"
+            );
+
+            SocialUserInfo socialUserInfo = new SocialUserInfo(
+                    "apple",
+                    "apple-sub-123456",
+                    "apple@test.com",
+                    null,
+                    null
+            );
+
+            when(appleTokenVerifier.verify("apple-identity-token")).thenReturn(socialUserInfo);
+            when(userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("apple", "apple-sub-123456"))
+                    .thenReturn(Optional.empty());
+            when(userRepository.findByEmailAndDeletedAtIsNull("apple@test.com"))
+                    .thenReturn(Optional.empty());
+            when(userRepository.existsByNicknameAndDeletedAtIsNull("중복닉네임"))
+                    .thenReturn(true);
+
+            BusinessException exception = assertThrows(
+                    BusinessException.class,
+                    () -> authService.signupWithApple(request)
             );
 
             assertEquals(ErrorCode.DUPLICATE_NICKNAME, exception.getErrorCode());

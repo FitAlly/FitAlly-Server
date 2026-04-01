@@ -2,7 +2,7 @@ package com.fitally.backend.external.kakao;
 
 import com.fitally.backend.common.exception.BusinessException;
 import com.fitally.backend.common.exception.ErrorCode;
-import com.fitally.backend.dto.auth.response.KakaoUserInfo;
+import com.fitally.backend.dto.auth.response.SocialUserInfo;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -13,7 +13,7 @@ public class KakaoApliClient {
     private static final String KAKAO_USER_INFO_URL = "https:/kapi.kakao.com/v2/user/me";
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public KakaoUserInfo getUserInfo(String accessToken) {
+    public SocialUserInfo getUserInfo(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -47,6 +47,6 @@ public class KakaoApliClient {
         String nickname = profile == null ? null : (String) profile.get("nickname");
         String profileImageUrl = profile == null ? null : (String) profile.get("profile_image_url");
 
-        return new KakaoUserInfo(providerId, email, nickname, profileImageUrl);
+        return new SocialUserInfo("kakao",providerId, email, nickname, profileImageUrl);
     }
 }

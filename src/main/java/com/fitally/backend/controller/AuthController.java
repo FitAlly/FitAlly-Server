@@ -1,10 +1,7 @@
 package com.fitally.backend.controller;
 
 import com.fitally.backend.common.response.ApiResponse;
-import com.fitally.backend.dto.auth.request.KakaoLoginRequest;
-import com.fitally.backend.dto.auth.request.KakaoSignupRequest;
-import com.fitally.backend.dto.auth.request.LoginRequest;
-import com.fitally.backend.dto.auth.request.SignupRequest;
+import com.fitally.backend.dto.auth.request.*;
 import com.fitally.backend.dto.auth.response.SignupResponse;
 import com.fitally.backend.dto.auth.response.TokenResponse;
 import com.fitally.backend.service.AuthService;
@@ -49,5 +46,31 @@ public class AuthController {
         TokenResponse response = authService.signupWithKakao(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("201", "카카오 회원가입이 완료되었습니다.", response));
+    }
+
+    @PostMapping("/login/naver")
+    public ResponseEntity<ApiResponse<TokenResponse>> loginNaver(@Valid @RequestBody NaverLoginRequest request) {
+        TokenResponse response = authService.loginWithNaver(request);
+        return ResponseEntity.ok(ApiResponse.success("200", "네이버 로그인이 완료되었습니다.", response));
+    }
+
+    @PostMapping("/signup/naver")
+    public ResponseEntity<ApiResponse<TokenResponse>> signupNaver(@Valid @RequestBody NaverSignupRequest request) {
+        TokenResponse response = authService.signupWithNaver(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("201", "네이버 회원가입이 완료되었습니다.", response));
+    }
+
+    @PostMapping("/login/apple")
+    public ResponseEntity<ApiResponse<TokenResponse>> loginApple(@Valid @RequestBody AppleLoginRequest request) {
+        TokenResponse response = authService.loginWithApple(request);
+        return ResponseEntity.ok(ApiResponse.success("200", "애플 로그인이 완료되었습니다.", response));
+    }
+
+    @PostMapping("/signup/apple")
+    public ResponseEntity<ApiResponse<TokenResponse>> signupApple(@Valid @RequestBody AppleSignupRequest request) {
+        TokenResponse response = authService.signupWithApple(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("201", "애플 회원가입이 완료되었습니다.", response));
     }
 }

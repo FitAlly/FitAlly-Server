@@ -2,15 +2,14 @@ package com.fitally.backend.service;
 
 import com.fitally.backend.common.exception.BusinessException;
 import com.fitally.backend.common.exception.ErrorCode;
-import com.fitally.backend.dto.auth.request.KakaoLoginRequest;
-import com.fitally.backend.dto.auth.request.KakaoSignupRequest;
-import com.fitally.backend.dto.auth.request.LoginRequest;
-import com.fitally.backend.dto.auth.request.SignupRequest;
-import com.fitally.backend.dto.auth.response.KakaoUserInfo;
+import com.fitally.backend.dto.auth.request.*;
+import com.fitally.backend.dto.auth.response.SocialUserInfo;
 import com.fitally.backend.dto.auth.response.SignupResponse;
 import com.fitally.backend.dto.auth.response.TokenResponse;
 import com.fitally.backend.entity.User;
+import com.fitally.backend.external.apple.AppleTokenVerifier;
 import com.fitally.backend.external.kakao.KakaoApliClient;
+import com.fitally.backend.external.naver.NaverApiClient;
 import com.fitally.backend.repository.UserRepository;
 import com.fitally.backend.security.jwt.JwtTokenProvider;
 import lombok.AllArgsConstructor;
@@ -27,6 +26,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoApliClient kakaoApliClient;
+    private final NaverApiClient naverApiClient;
+    private final AppleTokenVerifier appleTokenVerifier;
 
 
 
@@ -71,10 +72,78 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public TokenResponse loginWithKakao(KakaoLoginRequest request) {
-        KakaoUserInfo kakaoUserInfo = kakaoApliClient.getUserInfo(request.getSocialAccessToken());
+    public TokenResponse loginWithNaver(NaverLoginRequest request) {
+        SocialUserInfo socialUserInfo = naverApiClient.getUserInfo(request.getSocialAccessToken());
 
-        User user = userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", kakaoUserInfo.getProviderId())
+        User user = userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("naver", socialUserInfo.getProviderId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.SOCIAL_SIGNUP_REQUIRED));
+
+        String accessToken = jwtTokenProvider.createAccessToken(user);
+        String refreshToken = jwtTokenProvider.createRefreshToken(user);
+
+        return new TokenResponse("Bearer", accessToken, refreshToken);
+    }
+
+    public TokenResponse signupWithNaver(NaverSignupRequest request) {
+        SocialUserInfo socialUserInfo = naverApiClient.getUserInfo(request.getSocialAccessToken());
+
+        validateSocialSignup("naver", socialUserInfo, request.getNickname());
+
+        User user = User.createSocialUser(
+                socialUserInfo.getEmail(),
+                "naver",
+                socialUserInfo.getProviderId(),
+                request.getNickname(),
+                socialUserInfo.getProfileImageUrl()
+        );
+
+        User savedUser = userRepository.save(user);
+
+        String accessToken = jwtTokenProvider.createAccessToken(savedUser);
+        String refreshToken = jwtTokenProvider.createRefreshToken(savedUser);
+
+        return new TokenResponse("Bearer", accessToken, refreshToken);
+    }
+
+    @Transactional(readOnly = true)
+    public TokenResponse loginWithApple(AppleLoginRequest request) {
+        SocialUserInfo socialUserInfo = appleTokenVerifier.verify(request.getIdentityToken());
+
+        User user =  userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("apple", socialUserInfo.getProviderId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.SOCIAL_SIGNUP_REQUIRED));
+
+        String accessToken = jwtTokenProvider.createAccessToken(user);
+        String refreshToken = jwtTokenProvider.createRefreshToken(user);
+
+        return new TokenResponse("Bearer", accessToken, refreshToken);
+    }
+
+    public TokenResponse signupWithApple(AppleSignupRequest request) {
+        SocialUserInfo socialUserInfo = appleTokenVerifier.verify(request.getIdentityToken());
+
+        validateSocialSignup("apple", socialUserInfo, request.getNickname());
+
+        User user = User.createSocialUser(
+                socialUserInfo.getEmail(),
+                "apple",
+                socialUserInfo.getProviderId(),
+                request.getNickname(),
+                socialUserInfo.getProfileImageUrl()
+        );
+
+        User savedUser = userRepository.save(user);
+
+        String accessToken = jwtTokenProvider.createAccessToken(savedUser);
+        String refreshToken = jwtTokenProvider.createRefreshToken(savedUser);
+
+        return new TokenResponse("Bearer", accessToken, refreshToken);
+    }
+
+    @Transactional(readOnly = true)
+    public TokenResponse loginWithKakao(KakaoLoginRequest request) {
+        SocialUserInfo socialUserInfo = kakaoApliClient.getUserInfo(request.getSocialAccessToken());
+
+        User user = userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", socialUserInfo.getProviderId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.SOCIAL_SIGNUP_REQUIRED));
 
         String accessToken = jwtTokenProvider.createAccessToken(user);
@@ -84,18 +153,18 @@ public class AuthService {
     }
 
     public TokenResponse signupWithKakao(KakaoSignupRequest request) {
-        KakaoUserInfo kakaoUserInfo = kakaoApliClient.getUserInfo(request.getSocialAccessToken());
+        SocialUserInfo socialUserInfo = kakaoApliClient.getUserInfo(request.getSocialAccessToken());
 
-        if (kakaoUserInfo.getEmail() == null || kakaoUserInfo.getEmail().isBlank()) {
+        if (socialUserInfo.getEmail() == null || socialUserInfo.getEmail().isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
         }
 
-        userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", kakaoUserInfo.getProviderId())
+        userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", socialUserInfo.getProviderId())
                 .ifPresent(user -> {
                    throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
                 });
 
-        userRepository.findByEmailAndDeletedAtIsNull(kakaoUserInfo.getEmail())
+        userRepository.findByEmailAndDeletedAtIsNull(socialUserInfo.getEmail())
                 .ifPresent(existingUser -> {
                     if (!"kakao".equalsIgnoreCase(existingUser.getProvider())){
                         throw new BusinessException(ErrorCode.INVALID_LOGIN_PROVIDER);
@@ -105,11 +174,11 @@ public class AuthService {
         validateDuplicateNickname(request.getNickname());
 
         User user = User.createSocialUser(
-                kakaoUserInfo.getEmail(),
+                socialUserInfo.getEmail(),
                 "kakao",
-                kakaoUserInfo.getProviderId(),
+                socialUserInfo.getProviderId(),
                 request.getNickname(),
-                kakaoUserInfo.getProfileImageUrl()
+                socialUserInfo.getProfileImageUrl()
         );
 
         User savedUser = userRepository.save(user);
@@ -118,6 +187,28 @@ public class AuthService {
         String refreshToken = jwtTokenProvider.createRefreshToken(savedUser);
 
         return new TokenResponse("Bearer", accessToken, refreshToken);
+    }
+
+    private void validateSocialSignup(String provider, SocialUserInfo socialUserInfo, String nickname) {
+        if (socialUserInfo.getProviderId() == null || socialUserInfo.getProviderId().isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        userRepository.findByProviderAndProviderIdAndDeletedAtIsNull(provider, socialUserInfo.getProviderId())
+                .ifPresent(user -> {
+                    throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+                });
+
+        if (socialUserInfo.getEmail() != null && !socialUserInfo.getEmail().isBlank()) {
+            userRepository.findByEmailAndDeletedAtIsNull(socialUserInfo.getEmail())
+                    .ifPresent(existingUser -> {
+                        if (!provider.equalsIgnoreCase(existingUser.getProvider())) {
+                            throw new BusinessException(ErrorCode.INVALID_LOGIN_PROVIDER);
+                        }
+                    });
+        }
+
+        validateDuplicateNickname(nickname);
     }
 
     private void validateDuplicateEmail(String email) {
