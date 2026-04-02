@@ -25,8 +25,15 @@ public enum ErrorCode {
     SOCIAL_SIGNUP_REQUIRED(HttpStatus.NOT_FOUND, "AUTH_007", "소셜 회원가입이 필요합니다."),
     INVALID_SOCIAL_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_008", "유효하지 않은 소셜 토큰입니다."),
 
+    // 성인 인증
+    ADULT_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "AUTH_009", "성인 인증이 필요합니다."),
+    ADULT_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "AUTH_010", "성인 인증에 실패했습니다."),
+    ADULT_VERIFICATION_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH_011", "성인 인증 정보가 만료되었습니다."),
+    UNDERAGE_USER(HttpStatus.FORBIDDEN, "AUTH_012", "성인만 가입할 수 있습니다."),
+    INVALID_VERIFICATION_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_013", "유효하지 않은 성인 인증 토큰입니다."),
+
     // 프로필
-    PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "WORKOUT_001", "운동 정보를 찾을 수 없습니다."),
+    PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "WORKOUT_001", "프로필 정보를 찾을 수 없습니다."),
 
     // 채팅
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_001",  "채팅방을 찾을 수 없습니다."),

@@ -58,7 +58,11 @@ public class AuthService {
     @Transactional(readOnly = true)
     public TokenResponse login(LoginRequest request) {
         User user = userRepository.findByEmailAndDeletedAtIsNull(request.getEmail())
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_LOGIN_PROVIDER));
+                .orElseThrow(() -> new BusinessException(ErrorCode.LOGIN_FAILED));
+
+        if (!"email".equalsIgnoreCase(user.getProvider())) {
+            throw new BusinessException(ErrorCode.INVALID_LOGIN_PROVIDER);
+        }
 
         boolean matches = passwordEncoder.matches(request.getPassword(), user.getPasswordHash());
         if (!matches) {

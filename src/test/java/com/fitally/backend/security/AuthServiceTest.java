@@ -199,7 +199,7 @@ class AuthServiceTest {
                     () -> authService.login(request)
             );
 
-            assertEquals(ErrorCode.INVALID_LOGIN_PROVIDER, exception.getErrorCode());
+            assertEquals(ErrorCode.LOGIN_FAILED, exception.getErrorCode());
         }
 
         @Test
