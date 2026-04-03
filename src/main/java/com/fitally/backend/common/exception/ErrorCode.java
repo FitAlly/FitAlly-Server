@@ -21,6 +21,7 @@ public enum ErrorCode {
     INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_003", "유효하지 않은 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_004", "만료된 토큰입니다."),
     LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_005", "이메일 또는 비밀번호가 올바르지 않습니다."),
+    INVALID_LOGIN_PROVIDER(HttpStatus.BAD_REQUEST, "AUTH_006", "일반 로그인 계정이 아닙니다."),
 
     // 운동
     EXERCISE_NOT_FOUND(HttpStatus.NOT_FOUND, "EXERCISE_001", "존재하지 않는 운동입니다."),
