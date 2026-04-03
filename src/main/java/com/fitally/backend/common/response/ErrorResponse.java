@@ -2,52 +2,27 @@ package com.fitally.backend.common.response;
 
 import com.fitally.backend.common.exception.ErrorCode;
 
-import java.time.LocalDateTime;
-
 public class ErrorResponse {
 
-    private final LocalDateTime timestamp;
-    private final int status;
-    private final String error;
+    private final boolean success;
     private final String code;
     private final String message;
-    private final String path;
 
-    private ErrorResponse(LocalDateTime timestamp, int status, String error, String code, String message, String path) {
-        this.timestamp = timestamp;
-        this.status = status;
-        this.error = error;
+    private ErrorResponse(String code, String message) {
+        this.success = false;
         this.code = code;
         this.message = message;
-        this.path = path;
     }
 
-    public static ErrorResponse of(ErrorCode errorCode, String path) {
-        return new ErrorResponse(
-                LocalDateTime.now(),
-                errorCode.getStatus().value(),
-                errorCode.getStatus().name(),
-                errorCode.getCode(),
-                errorCode.getMessage(),
-                path
-        );
+    public static ErrorResponse of(ErrorCode errorCode) {
+        return new ErrorResponse(errorCode.getCode(), errorCode.getMessage());
     }
 
-    public static ErrorResponse of(ErrorCode errorCode, String customMessage, String path) {
-        return new ErrorResponse(
-                LocalDateTime.now(),
-                errorCode.getStatus().value(),
-                errorCode.getStatus().name(),
-                errorCode.getCode(),
-                customMessage,
-                path
-        );
+    public static ErrorResponse of(ErrorCode errorCode, String customMessage) {
+        return new ErrorResponse(errorCode.getCode(), customMessage);
     }
 
-    public LocalDateTime getTimestamp() { return timestamp; }
-    public int getStatus() { return status; }
-    public String getError() { return error; }
+    public boolean isSuccess() { return success; }
     public String getCode() { return code; }
     public String getMessage() { return message; }
-    public String getPath() { return path; }
 }
