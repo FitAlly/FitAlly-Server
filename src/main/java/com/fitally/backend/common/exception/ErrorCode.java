@@ -33,7 +33,23 @@ public enum ErrorCode {
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT_001", "신고 내역을 찾을 수 없습니다."),
 
     // 차단
-    BLOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "BLOCK_001", "차단 정보를 찾을 수 없습니다.");
+    BLOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "BLOCK_001", "차단 정보를 찾을 수 없습니다."),
+
+    // 운동(Exercise)
+    EXERCISE_NOT_FOUND(HttpStatus.NOT_FOUND, "EXERCISE_001", "운동 정보를 찾을 수 없습니다."),
+
+    // 루틴(Routine)
+    ROUTINE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_001", "루틴을 찾을 수 없습니다."),
+    AI_ROUTINE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_002", "AI 추천 루틴을 찾을 수 없습니다."),
+
+    // 루틴 세션(RoutineSession)
+    ROUTINE_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_SESSION_001", "루틴 세션을 찾을 수 없습니다."),
+    ROUTINE_SESSION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "ROUTINE_SESSION_002", "이미 완료된 루틴 세션입니다."),
+    ROUTINE_SESSION_EXERCISE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_SESSION_003", "세션에 해당 운동이 존재하지 않습니다."),
+
+    // 단일 운동 세션(WorkoutSession)
+    WORKOUT_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "WORKOUT_SESSION_001", "운동 세션을 찾을 수 없습니다."),
+    WORKOUT_SESSION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "WORKOUT_SESSION_002", "이미 완료된 운동 세션입니다.");
 
     private final HttpStatus status;
     private final String code;
