@@ -21,7 +21,7 @@ public class ExerciseController {
     /** 홈화면 미리보기 */
     @GetMapping("/preview")
     public ResponseEntity<ApiResponse<List<ExercisePreviewResponse>>> getPreview() {
-        return ResponseEntity.ok(ApiResponse.success(exerciseService.getPreview()));
+        return ResponseEntity.ok(ApiResponse.success("운동 미리보기 조회 성공", exerciseService.getPreview()));
     }
 
     /** 전체보기 (키워드 검색 / 카테고리·난이도 필터) */
@@ -30,12 +30,12 @@ public class ExerciseController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String difficulty) {
-        return ResponseEntity.ok(ApiResponse.success(exerciseService.getExercises(keyword, category, difficulty)));
+        return ResponseEntity.ok(ApiResponse.success("운동 목록 조회 성공", exerciseService.getExercises(keyword, category, difficulty)));
     }
 
     /** 단건 상세 */
     @GetMapping("/{exerciseId}")
     public ResponseEntity<ApiResponse<ExerciseDetailResponse>> getExercise(@PathVariable Long exerciseId) {
-        return ResponseEntity.ok(ApiResponse.success(exerciseService.getExercise(exerciseId)));
+        return ResponseEntity.ok(ApiResponse.success("운동 상세 조회 성공", exerciseService.getExercise(exerciseId)));
     }
 }

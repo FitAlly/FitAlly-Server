@@ -22,6 +22,18 @@ public enum ErrorCode {
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_004", "만료된 토큰입니다."),
     LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_005", "이메일 또는 비밀번호가 올바르지 않습니다."),
 
+    // 운동
+    EXERCISE_NOT_FOUND(HttpStatus.NOT_FOUND, "EXERCISE_001", "존재하지 않는 운동입니다."),
+
+    // 루틴
+    ROUTINE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_001", "존재하지 않는 루틴입니다."),
+
+    // 세션
+    SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_001", "존재하지 않는 세션입니다."),
+    SESSION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "SESSION_002", "이미 완료된 세션입니다."),
+    SESSION_NO_CURRENT_EXERCISE(HttpStatus.BAD_REQUEST, "SESSION_003", "진행 중인 운동이 없습니다."),
+    ROUTINE_EXERCISE_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_004", "존재하지 않는 운동 항목입니다."),
+
     // 프로필
     PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "WORKOUT_001", "운동 정보를 찾을 수 없습니다."),
 
@@ -33,23 +45,7 @@ public enum ErrorCode {
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT_001", "신고 내역을 찾을 수 없습니다."),
 
     // 차단
-    BLOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "BLOCK_001", "차단 정보를 찾을 수 없습니다."),
-
-    // 운동(Exercise)
-    EXERCISE_NOT_FOUND(HttpStatus.NOT_FOUND, "EXERCISE_001", "운동 정보를 찾을 수 없습니다."),
-
-    // 루틴(Routine)
-    ROUTINE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_001", "루틴을 찾을 수 없습니다."),
-    AI_ROUTINE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_002", "AI 추천 루틴을 찾을 수 없습니다."),
-
-    // 루틴 세션(RoutineSession)
-    ROUTINE_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_SESSION_001", "루틴 세션을 찾을 수 없습니다."),
-    ROUTINE_SESSION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "ROUTINE_SESSION_002", "이미 완료된 루틴 세션입니다."),
-    ROUTINE_SESSION_EXERCISE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_SESSION_003", "세션에 해당 운동이 존재하지 않습니다."),
-
-    // 단일 운동 세션(WorkoutSession)
-    WORKOUT_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "WORKOUT_SESSION_001", "운동 세션을 찾을 수 없습니다."),
-    WORKOUT_SESSION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "WORKOUT_SESSION_002", "이미 완료된 운동 세션입니다.");
+    BLOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "BLOCK_001", "차단 정보를 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;

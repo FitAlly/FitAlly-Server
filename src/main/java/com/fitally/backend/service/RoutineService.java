@@ -1,5 +1,7 @@
 package com.fitally.backend.service;
 
+import com.fitally.backend.common.exception.BusinessException;
+import com.fitally.backend.common.exception.ErrorCode;
 import com.fitally.backend.dto.routine.RoutineCreateRequest;
 import com.fitally.backend.dto.routine.RoutineResponse;
 import com.fitally.backend.dto.routine.RoutineWorkoutRequest;
@@ -118,7 +120,7 @@ public class RoutineService {
         IntStream.range(0, workoutRequests.size()).forEach(i -> {
             RoutineWorkoutRequest req = workoutRequests.get(i);
             Exercise exercise = exerciseRepository.findById(req.getExerciseId())
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 운동입니다."));
+                    .orElseThrow(() -> new BusinessException(ErrorCode.EXERCISE_NOT_FOUND));
 
             RoutineWorkout rw = RoutineWorkout.builder()
                     .routine(routine)
@@ -135,6 +137,6 @@ public class RoutineService {
 
     private Routine getRoutineOrThrow(Long routineId) {
         return routineRepository.findById(routineId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 루틴입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROUTINE_NOT_FOUND));
     }
 }

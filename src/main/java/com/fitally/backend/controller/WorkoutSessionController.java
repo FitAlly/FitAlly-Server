@@ -22,13 +22,13 @@ public class WorkoutSessionController {
     public ResponseEntity<ApiResponse<WorkoutStartResponse>> startSession(
             @RequestHeader("X-User-Id") Long userId,
             @RequestBody WorkoutStartRequest request) {
-        return ResponseEntity.ok(ApiResponse.success(workoutSessionService.startSession(userId, request)));
+        return ResponseEntity.ok(ApiResponse.success("운동 세션 시작 성공", workoutSessionService.startSession(userId, request)));
     }
 
     /** 세트 완료 */
     @PostMapping("/{sessionId}/complete-set")
     public ResponseEntity<ApiResponse<SetCompleteResponse>> completeSet(@PathVariable Long sessionId) {
-        return ResponseEntity.ok(ApiResponse.success(workoutSessionService.completeSet(sessionId)));
+        return ResponseEntity.ok(ApiResponse.success("세트 완료 성공", workoutSessionService.completeSet(sessionId)));
     }
 
     /** 운동 완료 */
@@ -36,6 +36,6 @@ public class WorkoutSessionController {
     public ResponseEntity<ApiResponse<WorkoutFinishResponse>> finishSession(
             @PathVariable Long sessionId,
             @RequestParam int totalSeconds) {
-        return ResponseEntity.ok(ApiResponse.success(workoutSessionService.finishSession(sessionId, totalSeconds)));
+        return ResponseEntity.ok(ApiResponse.success("운동 완료 성공", workoutSessionService.finishSession(sessionId, totalSeconds)));
     }
 }

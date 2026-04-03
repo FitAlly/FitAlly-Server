@@ -4,11 +4,12 @@ import com.fitally.backend.common.exception.ErrorCode;
 
 public class ErrorResponse {
 
-    private final boolean success = false;
+    private final boolean success;
     private final String code;
     private final String message;
 
     private ErrorResponse(String code, String message) {
+        this.success = false;
         this.code = code;
         this.message = message;
     }
@@ -21,15 +22,7 @@ public class ErrorResponse {
         return new ErrorResponse(errorCode.getCode(), customMessage);
     }
 
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
+    public boolean isSuccess() { return success; }
+    public String getCode() { return code; }
+    public String getMessage() { return message; }
 }

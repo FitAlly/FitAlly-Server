@@ -26,10 +26,6 @@ public class ApiResponse<T> {
         return new ApiResponse<>(true, "200", message, data);
     }
 
-    public static <T> ApiResponse<T> error(com.fitally.backend.common.exception.ErrorCode errorCode) {
-        return new ApiResponse<>(false, errorCode.getCode(), errorCode.getMessage(), null);
-    }
-
     public boolean isSuccess() {
         return success;
     }

@@ -1,5 +1,7 @@
 package com.fitally.backend.service;
 
+import com.fitally.backend.common.exception.BusinessException;
+import com.fitally.backend.common.exception.ErrorCode;
 import com.fitally.backend.dto.exercise.ExerciseDetailResponse;
 import com.fitally.backend.dto.exercise.ExerciseListResponse;
 import com.fitally.backend.dto.exercise.ExercisePreviewResponse;
@@ -53,7 +55,7 @@ public class ExerciseService {
     /** 단건 상세 조회 */
     public ExerciseDetailResponse getExercise(Long exerciseId) {
         Exercise exercise = exerciseRepository.findById(exerciseId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 운동입니다. id=" + exerciseId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.EXERCISE_NOT_FOUND));
         return new ExerciseDetailResponse(exercise);
     }
 }
