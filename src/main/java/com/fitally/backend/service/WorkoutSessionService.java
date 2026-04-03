@@ -1,5 +1,7 @@
 package com.fitally.backend.service;
 
+import com.fitally.backend.common.exception.BusinessException;
+import com.fitally.backend.common.exception.ErrorCode;
 import com.fitally.backend.dto.workout.SetCompleteResponse;
 import com.fitally.backend.dto.workout.WorkoutFinishResponse;
 import com.fitally.backend.dto.workout.WorkoutStartRequest;
@@ -26,7 +28,7 @@ public class WorkoutSessionService {
     @Transactional
     public WorkoutStartResponse startSession(Long userId, WorkoutStartRequest request) {
         Exercise exercise = exerciseRepository.findById(request.getExerciseId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 운동입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.EXERCISE_NOT_FOUND));
 
         WorkoutSession session = WorkoutSession.builder()
                 .userId(userId)
@@ -45,7 +47,7 @@ public class WorkoutSessionService {
         WorkoutSession session = getSessionOrThrow(sessionId);
 
         if (session.getStatus() == WorkoutSession.SessionStatus.COMPLETED) {
-            throw new IllegalStateException("이미 완료된 세션입니다.");
+            throw new BusinessException(ErrorCode.SESSION_ALREADY_COMPLETED);
         }
 
         session.completeSet();
@@ -69,6 +71,6 @@ public class WorkoutSessionService {
 
     private WorkoutSession getSessionOrThrow(Long sessionId) {
         return sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 세션입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.SESSION_NOT_FOUND));
     }
 }

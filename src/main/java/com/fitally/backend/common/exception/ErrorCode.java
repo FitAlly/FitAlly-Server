@@ -22,6 +22,18 @@ public enum ErrorCode {
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_004", "만료된 토큰입니다."),
     LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_005", "이메일 또는 비밀번호가 올바르지 않습니다."),
 
+    // 운동
+    EXERCISE_NOT_FOUND(HttpStatus.NOT_FOUND, "EXERCISE_001", "존재하지 않는 운동입니다."),
+
+    // 루틴
+    ROUTINE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_001", "존재하지 않는 루틴입니다."),
+
+    // 세션
+    SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_001", "존재하지 않는 세션입니다."),
+    SESSION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "SESSION_002", "이미 완료된 세션입니다."),
+    SESSION_NO_CURRENT_EXERCISE(HttpStatus.BAD_REQUEST, "SESSION_003", "진행 중인 운동이 없습니다."),
+    ROUTINE_EXERCISE_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_004", "존재하지 않는 운동 항목입니다."),
+
     // 프로필
     PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "WORKOUT_001", "운동 정보를 찾을 수 없습니다."),
 

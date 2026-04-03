@@ -1,5 +1,7 @@
 package com.fitally.backend.service;
 
+import com.fitally.backend.common.exception.BusinessException;
+import com.fitally.backend.common.exception.ErrorCode;
 import com.fitally.backend.dto.routinesession.*;
 import com.fitally.backend.entity.*;
 import com.fitally.backend.repository.RoutineRepository;
@@ -25,7 +27,7 @@ public class RoutineSessionService {
     @Transactional
     public RoutineSessionStateResponse startSession(Long userId, Long routineId) {
         Routine routine = routineRepository.findById(routineId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 루틴입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROUTINE_NOT_FOUND));
 
         RoutineSession session = RoutineSession.builder()
                 .userId(userId)
@@ -59,12 +61,12 @@ public class RoutineSessionService {
         RoutineSession session = getSessionOrThrow(sessionId);
 
         if (session.getStatus() == RoutineSession.SessionStatus.COMPLETED) {
-            throw new IllegalStateException("이미 완료된 세션입니다.");
+            throw new BusinessException(ErrorCode.SESSION_ALREADY_COMPLETED);
         }
 
         RoutineSessionExercise current = session.getCurrentExercise();
         if (current == null) {
-            throw new IllegalStateException("진행 중인 운동이 없습니다.");
+            throw new BusinessException(ErrorCode.SESSION_NO_CURRENT_EXERCISE);
         }
 
         session.completeSet();
@@ -80,7 +82,7 @@ public class RoutineSessionService {
         RoutineSessionExercise exercise = session.getExercises().stream()
                 .filter(e -> e.getRoutineSessionExerciseId().equals(routineSessionExerciseId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 운동입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ROUTINE_EXERCISE_NOT_FOUND));
 
         exercise.update(request.getTargetSets(), request.getTargetReps(), request.getRestSeconds());
         return new RoutineSessionStateResponse(session);
@@ -107,6 +109,6 @@ public class RoutineSessionService {
 
     private RoutineSession getSessionOrThrow(Long sessionId) {
         return routineSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 세션입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.SESSION_NOT_FOUND));
     }
 }
