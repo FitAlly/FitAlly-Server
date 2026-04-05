@@ -31,6 +31,7 @@ public enum ErrorCode {
     ADULT_VERIFICATION_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH_011", "성인 인증 정보가 만료되었습니다."),
     UNDERAGE_USER(HttpStatus.FORBIDDEN, "AUTH_012", "성인만 가입할 수 있습니다."),
     INVALID_VERIFICATION_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_013", "유효하지 않은 성인 인증 토큰입니다."),
+    ALREADY_ADULT_VERIFIED(HttpStatus.CONFLICT, "AUTH_014", "이미 성인 인증이 완료된 사용자입니다."),
 
     // 프로필
     PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "WORKOUT_001", "프로필 정보를 찾을 수 없습니다."),

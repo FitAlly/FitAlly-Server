@@ -153,6 +153,21 @@ public class User {
                 .build();
     }
 
+    public void verifyAdult(LocalDate birthdate) {
+        this.isAdultVerified = true;
+        this.birthdate = birthdate;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.passwordHash = encodedPassword;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public boolean isEmailUser() {
+        return provider == null || "email".equalsIgnoreCase(provider);
+    }
+
     public void softDelete() {
         this.deletedAt = LocalDateTime.now();
     }

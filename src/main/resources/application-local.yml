@@ -15,5 +15,36 @@ spring:
         format_sql: true
   flyway:
     enabled: false
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: "fitally1234@gmail.com"
+    password: "Fitally12345@"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  social:
+    apple:
+      audience: "gurwls980423@gmail.com"
+
 jwt:
   secret: "this-is-a-very-long-key-for-fitally-jwt-token-example-1234567890"
+  access-token-expiration: 3600000
+  refresh-token-expiration: 1209600000
+
+portone:
+  api-key: 여기에_포트원_API_KEY
+  api-secret: 여기에_포트원_API_SECRET
+  base-url: https://api.iamport.kr
+
+
+app:
+  mail:
+    from: "fitally1234@gmail.com"
+  password-reset:
+    code-expiration-minutes: 10

@@ -2,19 +2,22 @@ package com.fitally.backend.controller;
 
 import com.fitally.backend.common.response.ApiResponse;
 import com.fitally.backend.dto.auth.request.*;
+import com.fitally.backend.dto.auth.response.AdultVerifyResponse;
 import com.fitally.backend.dto.auth.response.SignupResponse;
 import com.fitally.backend.dto.auth.response.TokenResponse;
+import com.fitally.backend.security.principal.CustomUserDetails;
 import com.fitally.backend.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
 
@@ -33,6 +36,18 @@ public class AuthController {
     public ResponseEntity<ApiResponse<TokenResponse>> login(@Valid @RequestBody LoginRequest request) {
         TokenResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.success("200", "로그인이 완료되었습니다.", response));
+    }
+
+    @PostMapping("/verify/adult")
+    public ResponseEntity<ApiResponse<AdultVerifyResponse>> verifyAdult(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @Valid @RequestBody AdultVerifyRequest request
+            ) {
+        AdultVerifyResponse response = authService.verifyAdult(customUserDetails.getUserId(), request);
+
+        return ResponseEntity.ok(
+          ApiResponse.success("200", "성인 인증이 완료되었습니다.", response)
+        );
     }
 
     @PostMapping("/login/kakao")

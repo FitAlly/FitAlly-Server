@@ -4,11 +4,13 @@ import com.fitally.backend.common.exception.BusinessException;
 import com.fitally.backend.common.exception.ErrorCode;
 import com.fitally.backend.dto.auth.response.SocialUserInfo;
 import org.springframework.http.*;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
 
-public class KakaoApliClient {
+@Component
+public class KakaoApiClient {
 
     private static final String KAKAO_USER_INFO_URL = "https:/kapi.kakao.com/v2/user/me";
     private final RestTemplate restTemplate = new RestTemplate();

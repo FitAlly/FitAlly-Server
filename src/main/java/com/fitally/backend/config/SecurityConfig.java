@@ -27,6 +27,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtTokenProvider, userRepository);
     }
@@ -41,7 +42,20 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/signup",
+                                "/api/auth/login",
+                                "/api/auth/login/kakao",
+                                "/api/auth/signup/kakao",
+                                "/api/auth/login/naver",
+                                "/api/auth/signup/naver",
+                                "/api/auth/login/apple",
+                                "/api/auth/signup/apple",
+
+                                "/api/auth/find-pw/sendcode",
+                                "/api/auth/find-pw/verify",
+                                "/api/auth/new-pw"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 ).addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 

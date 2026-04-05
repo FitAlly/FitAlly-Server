@@ -6,11 +6,13 @@ spring:
     name: backend
   profiles:
     active: local
-  jwt:
-    access-token-expiration: 3600000
-    refresh-token-expiration: 1209600000
-    secret: ${JWT_SECRET:}
+
   social:
     apple:
-      audience: com.fitally.app
+      audience: ${APPLE_AUDIENCE}
+
+jwt:
+  access-token-expiration: 3600000
+  refresh-token-expiration: 1209600000
+  secret: ${JWT_SECRET:}
 

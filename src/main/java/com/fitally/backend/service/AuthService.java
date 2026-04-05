@@ -2,20 +2,33 @@ package com.fitally.backend.service;
 
 import com.fitally.backend.common.exception.BusinessException;
 import com.fitally.backend.common.exception.ErrorCode;
-import com.fitally.backend.dto.auth.request.*;
-import com.fitally.backend.dto.auth.response.SocialUserInfo;
+import com.fitally.backend.dto.auth.request.AdultVerifyRequest;
+import com.fitally.backend.dto.auth.request.AppleLoginRequest;
+import com.fitally.backend.dto.auth.request.AppleSignupRequest;
+import com.fitally.backend.dto.auth.request.KakaoLoginRequest;
+import com.fitally.backend.dto.auth.request.KakaoSignupRequest;
+import com.fitally.backend.dto.auth.request.LoginRequest;
+import com.fitally.backend.dto.auth.request.NaverLoginRequest;
+import com.fitally.backend.dto.auth.request.NaverSignupRequest;
+import com.fitally.backend.dto.auth.request.SignupRequest;
+import com.fitally.backend.dto.auth.response.AdultVerifyResponse;
 import com.fitally.backend.dto.auth.response.SignupResponse;
+import com.fitally.backend.dto.auth.response.SocialUserInfo;
 import com.fitally.backend.dto.auth.response.TokenResponse;
 import com.fitally.backend.entity.User;
 import com.fitally.backend.external.apple.AppleTokenVerifier;
-import com.fitally.backend.external.kakao.KakaoApliClient;
+import com.fitally.backend.external.kakao.KakaoApiClient;
 import com.fitally.backend.external.naver.NaverApiClient;
+import com.fitally.backend.external.portone.PortOneClient;
 import com.fitally.backend.repository.UserRepository;
 import com.fitally.backend.security.jwt.JwtTokenProvider;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.Period;
 
 @Service
 @Transactional
@@ -25,11 +38,10 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final KakaoApliClient kakaoApliClient;
+    private final KakaoApiClient kakaoApiClient;
     private final NaverApiClient naverApiClient;
     private final AppleTokenVerifier appleTokenVerifier;
-
-
+    private final PortOneClient portOneClient;
 
     public SignupResponse signup(SignupRequest request) {
         validateDuplicateEmail(request.getEmail());
@@ -113,7 +125,7 @@ public class AuthService {
     public TokenResponse loginWithApple(AppleLoginRequest request) {
         SocialUserInfo socialUserInfo = appleTokenVerifier.verify(request.getIdentityToken());
 
-        User user =  userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("apple", socialUserInfo.getProviderId())
+        User user = userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("apple", socialUserInfo.getProviderId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.SOCIAL_SIGNUP_REQUIRED));
 
         String accessToken = jwtTokenProvider.createAccessToken(user);
@@ -145,7 +157,7 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public TokenResponse loginWithKakao(KakaoLoginRequest request) {
-        SocialUserInfo socialUserInfo = kakaoApliClient.getUserInfo(request.getSocialAccessToken());
+        SocialUserInfo socialUserInfo = kakaoApiClient.getUserInfo(request.getSocialAccessToken());
 
         User user = userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", socialUserInfo.getProviderId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.SOCIAL_SIGNUP_REQUIRED));
@@ -157,7 +169,7 @@ public class AuthService {
     }
 
     public TokenResponse signupWithKakao(KakaoSignupRequest request) {
-        SocialUserInfo socialUserInfo = kakaoApliClient.getUserInfo(request.getSocialAccessToken());
+        SocialUserInfo socialUserInfo = kakaoApiClient.getUserInfo(request.getSocialAccessToken());
 
         if (socialUserInfo.getEmail() == null || socialUserInfo.getEmail().isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE);
@@ -165,12 +177,12 @@ public class AuthService {
 
         userRepository.findByProviderAndProviderIdAndDeletedAtIsNull("kakao", socialUserInfo.getProviderId())
                 .ifPresent(user -> {
-                   throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+                    throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
                 });
 
         userRepository.findByEmailAndDeletedAtIsNull(socialUserInfo.getEmail())
                 .ifPresent(existingUser -> {
-                    if (!"kakao".equalsIgnoreCase(existingUser.getProvider())){
+                    if (!"kakao".equalsIgnoreCase(existingUser.getProvider())) {
                         throw new BusinessException(ErrorCode.INVALID_LOGIN_PROVIDER);
                     }
                 });
@@ -191,6 +203,43 @@ public class AuthService {
         String refreshToken = jwtTokenProvider.createRefreshToken(savedUser);
 
         return new TokenResponse("Bearer", accessToken, refreshToken);
+    }
+
+    public AdultVerifyResponse verifyAdult(Long userId, AdultVerifyRequest request) {
+        User user = userRepository.findByUserIdAndDeletedAtIsNull(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        if (Boolean.TRUE.equals(user.getIsAdultVerified())) {
+            throw new BusinessException(ErrorCode.ALREADY_ADULT_VERIFIED);
+        }
+
+        var certification = portOneClient.getCertification(request.getImpUid());
+
+        if (certification == null) {
+            throw new BusinessException(ErrorCode.ADULT_VERIFICATION_FAILED);
+        }
+
+        String birthday = certification.getBirthday();
+        if (birthday == null || birthday.isBlank()) {
+            throw new BusinessException(ErrorCode.ADULT_VERIFICATION_FAILED);
+        }
+
+        LocalDate birthdate = LocalDate.parse(birthday);
+        int age = Period.between(birthdate, LocalDate.now()).getYears();
+
+        if (age < 19) {
+            throw new BusinessException(ErrorCode.UNDERAGE_USER);
+        }
+
+        user.verifyAdult(birthdate);
+
+        return new AdultVerifyResponse(
+                user.getUserId(),
+                Boolean.TRUE.equals(user.getIsAdultVerified()),
+                request.getImpUid(),
+                certification.getMerchantUid(),
+                birthdate.toString()
+        );
     }
 
     private void validateSocialSignup(String provider, SocialUserInfo socialUserInfo, String nickname) {

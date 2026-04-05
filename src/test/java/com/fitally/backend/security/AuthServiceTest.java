@@ -15,7 +15,7 @@ import com.fitally.backend.dto.auth.response.SignupResponse;
 import com.fitally.backend.dto.auth.response.TokenResponse;
 import com.fitally.backend.entity.User;
 import com.fitally.backend.external.apple.AppleTokenVerifier;
-import com.fitally.backend.external.kakao.KakaoApliClient;
+import com.fitally.backend.external.kakao.KakaoApiClient;
 import com.fitally.backend.external.naver.NaverApiClient;
 import com.fitally.backend.repository.UserRepository;
 import com.fitally.backend.security.jwt.JwtTokenProvider;
@@ -54,7 +54,7 @@ class AuthServiceTest {
     private JwtTokenProvider jwtTokenProvider;
 
     @Mock
-    private KakaoApliClient kakaoApiClient;
+    private KakaoApiClient kakaoApiClient;
 
     @Mock
     private NaverApiClient naverApiClient;

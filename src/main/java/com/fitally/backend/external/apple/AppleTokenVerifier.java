@@ -19,7 +19,7 @@ public class AppleTokenVerifier {
 
     private final JwtDecoder jwtDecoder;
 
-    public AppleTokenVerifier(@Value("${social.apple.audience}") String audience) {
+    public AppleTokenVerifier(@Value("${spring.social.apple.audience}") String audience) {
         NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(APPLE_JWK_SET_URI).build();
 
         OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(APPLE_ISSUER);
