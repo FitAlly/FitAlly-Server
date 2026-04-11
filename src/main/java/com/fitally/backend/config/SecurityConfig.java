@@ -54,7 +54,9 @@ public class SecurityConfig {
 
                                 "/api/auth/find-pw/sendcode",
                                 "/api/auth/find-pw/verify",
-                                "/api/auth/new-pw"
+                                "/api/auth/new-pw",
+                                "/ws-chat/**",
+                                "/ws-chat"
                         ).permitAll()
                         .anyRequest().authenticated()
                 ).addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

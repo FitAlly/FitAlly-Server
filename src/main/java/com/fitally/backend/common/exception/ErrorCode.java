@@ -25,6 +25,7 @@ public enum ErrorCode {
     SOCIAL_SIGNUP_REQUIRED(HttpStatus.NOT_FOUND, "AUTH_007", "소셜 회원가입이 필요합니다."),
     INVALID_SOCIAL_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_008", "유효하지 않은 소셜 토큰입니다."),
 
+
     // 성인 인증
     ADULT_VERIFICATION_REQUIRED(HttpStatus.BAD_REQUEST, "AUTH_009", "성인 인증이 필요합니다."),
     ADULT_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "AUTH_010", "성인 인증에 실패했습니다."),
@@ -33,12 +34,22 @@ public enum ErrorCode {
     INVALID_VERIFICATION_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_013", "유효하지 않은 성인 인증 토큰입니다."),
     ALREADY_ADULT_VERIFIED(HttpStatus.CONFLICT, "AUTH_014", "이미 성인 인증이 완료된 사용자입니다."),
 
+    // 채팅(웹소켓)
+    AUTHENTICATION_NOT_FOUND(HttpStatus.UNAUTHORIZED, "AUTH_015", "인증 정보가 없습니다."),
+    INVALID_AUTHENTICATION_PRINCIPAL(HttpStatus.UNAUTHORIZED, "AUTH_016", "인증 사용자 정보를 확인할 수 없습니다."),
+    WEBSOCKET_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH_017", "웹소켓 인증이 필요합니다."),
+
     // 프로필
     PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "WORKOUT_001", "프로필 정보를 찾을 수 없습니다."),
 
     // 채팅
-    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_001",  "채팅방을 찾을 수 없습니다."),
-    CHAT_MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_002", "채팅 메세지를 찾을 수 없습니다."),
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_001", "채팅방을 찾을 수 없습니다."),
+    CHAT_PARTICIPANT_NOT_FOUND(HttpStatus.FORBIDDEN, "CHAT_002", "해당 채팅방 참여자가 아닙니다."),
+    CHAT_MESSAGE_EMPTY(HttpStatus.BAD_REQUEST, "CHAT_003", "메시지 내용이 없습니다."),
+    CHAT_SELF_ROOM_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "CHAT_004", "자기 자신과는 채팅할 수 없습니다."),
+    CHAT_OPPONENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_005", "상대 사용자를 찾을 수 없습니다."),
+    CHAT_SENDER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_006", "발신자를 찾을 수 없습니다."),
+    CHAT_USER_NOT_FOUND(HttpStatus.NOT_FOUND,"CHAT_007", "사용자를 찾을 수 없습니다."),
 
     // 신고
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT_001", "신고 내역을 찾을 수 없습니다."),

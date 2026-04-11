@@ -1,4 +1,4 @@
-package com.fitally.backend.dto.auth.response;
+package com.fitally.backend.dto.chat.response;
 
 import lombok.AllArgsConstructor;
 
@@ -29,7 +29,7 @@ public class ChatMessageResponse {
         return senderId;
     }
 
-    public String getSenderNickName() {
+    public String getSenderNickname() {
         return senderNickName;
     }
 

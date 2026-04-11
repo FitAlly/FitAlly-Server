@@ -1,6 +1,6 @@
 package com.fitally.backend.controller;
 
-import com.fitally.backend.dto.auth.request.MessageResponse;
+import com.fitally.backend.dto.auth.response.MessageResponse;
 import com.fitally.backend.dto.auth.request.ResetPasswordRequest;
 import com.fitally.backend.dto.auth.request.SendPasswordResetCodeRequest;
 import com.fitally.backend.dto.auth.request.VerifyPasswordResetCodeRequest;

@@ -1,4 +1,4 @@
-package com.fitally.backend.dto.auth.request;
+package com.fitally.backend.dto.chat.request;
 
 import lombok.Getter;
 import lombok.Setter;

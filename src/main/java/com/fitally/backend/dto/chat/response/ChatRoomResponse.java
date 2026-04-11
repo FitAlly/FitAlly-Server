@@ -1,4 +1,4 @@
-package com.fitally.backend.dto.auth.response;
+package com.fitally.backend.dto.chat.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +11,7 @@ public class ChatRoomResponse {
 
     private Long roomId;
     private Long opponentUserId;
-    private String opponentNickName;
+    private String opponentNickname;
     private String opponentProfileImageUrl;
     private String lastMessage;
     private LocalDateTime lastMessageAt;
