@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fitally.backend.common.enums.Role;
+import com.fitally.backend.dto.chat.request.ChatReadRequest;
 import com.fitally.backend.dto.chat.request.ChatSendMessageRequest;
 import com.fitally.backend.dto.chat.response.ChatMessageResponse;
+import com.fitally.backend.dto.chat.response.ChatReadResponse;
 import com.fitally.backend.entity.ChatMessage;
 import com.fitally.backend.entity.ChatParticipant;
 import com.fitally.backend.entity.ChatParticipantId;
@@ -25,8 +27,11 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.stomp.*;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
@@ -42,7 +47,11 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 class WebSocketChatIntegrationTest {
+
+    @MockitoBean
+    private JavaMailSender javaMailSender;
 
     @LocalServerPort
     private int port;
@@ -152,6 +161,78 @@ class WebSocketChatIntegrationTest {
         ChatRoom updatedRoom = chatRoomRepository.findById(room.getRoomId()).orElseThrow();
         assertEquals("실시간 통합 테스트 메시지", updatedRoom.getLastMessage());
         assertNotNull(updatedRoom.getLastMessageAt());
+    }
+
+    @Test
+    @DisplayName("JWT 인증으로 읽음 처리 요청을 보내면 unreadCount가 0으로 변경되고 실시간 이벤트가 발행된다")
+    void websocketChat_markAsRead_updatesUnreadCountAndPublishesEvent() throws Exception {
+        // given
+        User reader = saveUser(
+                "reader_" + System.nanoTime() + "@test.com",
+                "읽는사람_" + System.nanoTime()
+        );
+
+        User opponent = saveUser(
+                "opponent_" + System.nanoTime() + "@test.com",
+                "상대방_" + System.nanoTime()
+        );
+
+        ChatRoom room = saveChatRoom("direct");
+        saveParticipant(room.getRoomId(), reader.getUserId(), 3);
+        saveParticipant(room.getRoomId(), opponent.getUserId(), 0);
+
+        String accessToken = jwtTokenProvider.createAccessToken(reader);
+
+        stompClient = createStompClient();
+        String url = "ws://localhost:" + port + "/ws-chat";
+
+        BlockingQueue<ChatReadResponse> blockingQueue = new LinkedBlockingQueue<>();
+
+        WebSocketHttpHeaders handshakeHeaders = new WebSocketHttpHeaders();
+        StompHeaders connectHeaders = new StompHeaders();
+        connectHeaders.add("Authorization", "Bearer " + accessToken);
+
+        // when
+        stompSession = stompClient.connectAsync(
+                url,
+                handshakeHeaders,
+                connectHeaders,
+                new TestSessionHandler()
+        ).get(5, TimeUnit.SECONDS);
+
+        assertNotNull(stompSession);
+        assertTrue(stompSession.isConnected());
+
+        stompSession.subscribe("/sub/chat.room." + room.getRoomId() + ".read", new StompFrameHandler() {
+            @Override
+            public java.lang.reflect.Type getPayloadType(StompHeaders headers) {
+                return ChatReadResponse.class;
+            }
+
+            @Override
+            public void handleFrame(StompHeaders headers, Object payload) {
+                blockingQueue.offer((ChatReadResponse) payload);
+            }
+        });
+
+        ChatReadRequest request = new ChatReadRequest();
+        request.setRoomId(room.getRoomId());
+
+        stompSession.send("/pub/chat.read", request);
+
+        ChatReadResponse received = blockingQueue.poll(5, TimeUnit.SECONDS);
+
+        // then
+        assertNotNull(received, "읽음 처리 이벤트를 수신하지 못했습니다.");
+        assertEquals(room.getRoomId(), received.getRoomId());
+        assertEquals(reader.getUserId(), received.getUserId());
+        assertEquals(0, received.getUnreadCount());
+
+        ChatParticipant updatedParticipant = chatParticipantRepository
+                .findByIdRoomIdAndIdUserId(room.getRoomId(), reader.getUserId())
+                .orElseThrow();
+
+        assertEquals(0, updatedParticipant.getUnreadCount());
     }
 
     private WebSocketStompClient createStompClient() {

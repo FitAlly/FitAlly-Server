@@ -3,6 +3,7 @@ package com.fitally.backend.service;
 import com.fitally.backend.common.exception.BusinessException;
 import com.fitally.backend.dto.chat.request.ChatSendMessageRequest;
 import com.fitally.backend.dto.chat.response.ChatMessageResponse;
+import com.fitally.backend.dto.chat.response.ChatReadResponse;
 import com.fitally.backend.dto.chat.response.ChatRoomResponse;
 import com.fitally.backend.entity.ChatMessage;
 import com.fitally.backend.entity.ChatParticipant;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -207,43 +209,73 @@ class ChatServiceTest {
     }
 
     @Test
-    @DisplayName("getChatRooms는 내 채팅방 목록을 상대방 정보와 함께 반환한다")
-    void getChatRooms_returnsRoomListWithOpponentInfo() {
+    @DisplayName("getChatRooms는 내 채팅방 목록을 최신순으로 상대방 정보와 함께 반환한다")
+    void getChatRooms_returnsRoomListWithOpponentInfoInRecentOrder() {
         // given
         Long currentUserId = 1L;
-        Long opponentUserId = 2L;
-        Long roomId = 10L;
+        Long opponent1UserId = 2L;
+        Long opponent2UserId = 3L;
 
-        ChatParticipant myParticipant = createParticipant(roomId, currentUserId, 2);
-        ChatParticipant opponentParticipant = createParticipant(roomId, opponentUserId, 0);
-
-        ChatRoom room = createRoom(
-                roomId,
+        ChatRoom newerRoom = createRoom(
+                20L,
                 "direct",
-                "주말에 운동 가능하세요?",
+                "최신 메시지",
+                LocalDateTime.of(2026, 4, 12, 15, 0)
+        );
+
+        ChatRoom olderRoom = createRoom(
+                10L,
+                "direct",
+                "오래된 메시지",
                 LocalDateTime.of(2026, 4, 10, 9, 30)
         );
 
-        User opponent = createUser(opponentUserId, "김운동", "https://image.test/opponent.png");
+        ChatParticipant myParticipantInNewRoom = createParticipant(20L, currentUserId, 1);
+        ChatParticipant opponentParticipantInNewRoom = createParticipant(20L, opponent2UserId, 0);
 
-        when(chatParticipantRepository.findByIdUserId(currentUserId)).thenReturn(List.of(myParticipant));
-        when(chatRoomRepository.findById(roomId)).thenReturn(Optional.of(room));
-        when(chatParticipantRepository.findByIdRoomId(roomId))
-                .thenReturn(List.of(myParticipant, opponentParticipant));
-        when(userRepository.findById(opponentUserId)).thenReturn(Optional.of(opponent));
+        ChatParticipant myParticipantInOldRoom = createParticipant(10L, currentUserId, 2);
+        ChatParticipant opponentParticipantInOldRoom = createParticipant(10L, opponent1UserId, 0);
+
+        User opponent1 = createUser(opponent1UserId, "김운동", "https://image.test/opponent1.png");
+        User opponent2 = createUser(opponent2UserId, "박러닝", "https://image.test/opponent2.png");
+
+        when(chatRoomRepository.findChatRoomsByUserIdOrderByRecent(currentUserId))
+                .thenReturn(List.of(newerRoom, olderRoom));
+
+        when(chatParticipantRepository.findByIdRoomId(20L))
+                .thenReturn(List.of(myParticipantInNewRoom, opponentParticipantInNewRoom));
+
+        when(chatParticipantRepository.findByIdRoomId(10L))
+                .thenReturn(List.of(myParticipantInOldRoom, opponentParticipantInOldRoom));
+
+        when(userRepository.findById(opponent1UserId)).thenReturn(Optional.of(opponent1));
+        when(userRepository.findById(opponent2UserId)).thenReturn(Optional.of(opponent2));
 
         // when
         List<ChatRoomResponse> result = chatService.getChatRooms(currentUserId);
 
         // then
-        assertEquals(1, result.size());
+        assertEquals(2, result.size());
 
-        ChatRoomResponse response = result.get(0);
-        assertEquals(roomId, response.getRoomId());
-        assertEquals(opponentUserId, response.getOpponentUserId());
-        assertEquals("김운동", response.getOpponentNickname());
-        assertEquals("주말에 운동 가능하세요?", response.getLastMessage());
-        assertEquals(2, response.getUnreadCount());
+        ChatRoomResponse first = result.get(0);
+        assertEquals(20L, first.getRoomId());
+        assertEquals(opponent2UserId, first.getOpponentUserId());
+        assertEquals("박러닝", first.getOpponentNickname());
+        assertEquals("최신 메시지", first.getLastMessage());
+        assertEquals(1, first.getUnreadCount());
+
+        ChatRoomResponse second = result.get(1);
+        assertEquals(10L, second.getRoomId());
+        assertEquals(opponent1UserId, second.getOpponentUserId());
+        assertEquals("김운동", second.getOpponentNickname());
+        assertEquals("오래된 메시지", second.getLastMessage());
+        assertEquals(2, second.getUnreadCount());
+
+        verify(chatRoomRepository, times(1)).findChatRoomsByUserIdOrderByRecent(currentUserId);
+        verify(chatParticipantRepository, times(1)).findByIdRoomId(20L);
+        verify(chatParticipantRepository, times(1)).findByIdRoomId(10L);
+        verify(userRepository, times(1)).findById(opponent1UserId);
+        verify(userRepository, times(1)).findById(opponent2UserId);
     }
 
     @Test
@@ -359,8 +391,8 @@ class ChatServiceTest {
     }
 
     @Test
-    @DisplayName("markAsRead는 내 unreadCount를 0으로 만든다")
-    void markAsRead_setsUnreadCountToZero() {
+    @DisplayName("markAsRead는 내 unreadCount를 0으로 만들고 읽음 이벤트를 발행한다")
+    void markAsRead_setsUnreadCountToZeroAndPublishesEvent() {
         // given
         Long currentUserId = 1L;
         Long roomId = 55L;
@@ -375,6 +407,9 @@ class ChatServiceTest {
 
         // then
         assertEquals(0, participant.getUnreadCount());
+
+        verify(messagingTemplate, times(1))
+                .convertAndSend(eq("/sub/chat.room." + roomId + ".read"), any(ChatReadResponse.class));
     }
 
     @Test
@@ -406,12 +441,10 @@ class ChatServiceTest {
 
     private ChatRoom createRoom(Long roomId, String roomType, String lastMessage, LocalDateTime lastMessageAt) {
         ChatRoom room = new ChatRoom();
-
         setField(room, "roomId", roomId);
         room.setRoomType(roomType);
         room.setLastMessage(lastMessage);
         room.setLastMessageAt(lastMessageAt);
-
         return room;
     }
 
@@ -422,29 +455,26 @@ class ChatServiceTest {
                                       String imageUrl,
                                       LocalDateTime createdAt) {
         ChatMessage message = new ChatMessage();
-
         setField(message, "messageId", messageId);
         message.setRoomId(roomId);
         message.setSenderId(senderId);
         message.setMessageText(messageText);
         message.setImageUrl(imageUrl);
         setField(message, "createdAt", createdAt);
-
         return message;
     }
 
     private User createUser(Long userId, String nickname, String profileImageUrl) {
-        User user = User.builder()
+        return User.builder()
                 .userId(userId)
                 .nickname(nickname)
                 .profileImageUrl(profileImageUrl)
                 .build();
-        return user;
     }
 
     private void setField(Object target, String fieldName, Object value) {
         try {
-            java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
+            Field field = target.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);
             field.set(target, value);
         } catch (Exception e) {

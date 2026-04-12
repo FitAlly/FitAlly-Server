@@ -4,6 +4,7 @@ import com.fitally.backend.common.exception.BusinessException;
 import com.fitally.backend.common.exception.ErrorCode;
 import com.fitally.backend.dto.chat.request.ChatSendMessageRequest;
 import com.fitally.backend.dto.chat.response.ChatMessageResponse;
+import com.fitally.backend.dto.chat.response.ChatReadResponse;
 import com.fitally.backend.dto.chat.response.ChatRoomResponse;
 import com.fitally.backend.entity.*;
 import com.fitally.backend.repository.ChatMessageRepository;
@@ -36,16 +37,18 @@ public class ChatService {
 
     @Transactional(readOnly = true)
     public List<ChatRoomResponse> getChatRooms(Long currentUserId) {
-        List<ChatParticipant> myParticipants = chatParticipantRepository.findByIdUserId(currentUserId);
+        List<ChatRoom> chatRooms = chatRoomRepository.findChatRoomsByUserIdOrderByRecent(currentUserId);
         List<ChatRoomResponse> result = new ArrayList<>();
 
-        for (ChatParticipant myParticipant : myParticipants) {
-            Long roomId = myParticipant.getId().getRoomId();
-
-            ChatRoom room = chatRoomRepository.findById(roomId)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+        for (ChatRoom room : chatRooms) {
+            Long roomId = room.getRoomId();
 
             List<ChatParticipant> participants = chatParticipantRepository.findByIdRoomId(roomId);
+
+            ChatParticipant myParticipant = participants.stream()
+                    .filter(p -> p.getId().getUserId().equals(currentUserId))
+                    .findFirst()
+                    .orElse(null);
 
             Long opponentUserId = participants.stream()
                     .map(p -> p.getId().getUserId())
@@ -59,6 +62,7 @@ public class ChatService {
             if (opponentUserId != null) {
                 User opponent = userRepository.findById(opponentUserId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_OPPONENT_NOT_FOUND));
+
                 opponentNickName = opponent.getNickname();
                 opponentProfileImageUrl = opponent.getProfileImageUrl();
             }
@@ -73,9 +77,6 @@ public class ChatService {
                     myParticipant.getUnreadCount() == null ? 0 : myParticipant.getUnreadCount()
             ));
         }
-
-        result.sort(Comparator.comparing(ChatRoomResponse::getLastMessageAt,
-        Comparator.nullsLast(Comparator.reverseOrder())));
 
         return result;
     }
@@ -195,9 +196,24 @@ public class ChatService {
     }
 
     public void markAsRead(Long currentUserId, Long roomId) {
-        ChatParticipant participant = chatParticipantRepository.findByIdRoomIdAndIdUserId(roomId, currentUserId)
+        ChatParticipant participant = chatParticipantRepository
+                .findByIdRoomIdAndIdUserId(roomId, currentUserId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_PARTICIPANT_NOT_FOUND));
         participant.setUnreadCount(0);
+
+        participant.setUnreadCount(0);
+
+        ChatReadResponse response = new ChatReadResponse(
+                roomId,
+                currentUserId,
+                0,
+                LocalDateTime.now()
+        );
+
+        messagingTemplate.convertAndSend(
+                "/sub/chat.room." + roomId + ".read",
+                response
+        );
     }
 
     private void validateParticipant(Long roomId, Long userId) {

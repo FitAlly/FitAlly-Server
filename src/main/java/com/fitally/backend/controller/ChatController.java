@@ -4,10 +4,12 @@ import com.fitally.backend.common.response.ApiResponse;
 import com.fitally.backend.common.util.SecurityUtil;
 import com.fitally.backend.dto.chat.response.ChatMessageResponse;
 import com.fitally.backend.dto.chat.response.ChatRoomResponse;
+import com.fitally.backend.security.principal.CustomUserDetails;
 import com.fitally.backend.service.ChatService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,9 +23,11 @@ public class ChatController {
     private final ChatService chatService;
 
     @GetMapping("/rooms")
-    public ResponseEntity<ApiResponse<List<ChatRoomResponse>>> getRooms() {
-        Long currentUserId = SecurityUtil.getCurrentUserId();
-        return ResponseEntity.ok(ApiResponse.success(chatService.getChatRooms(currentUserId)));
+    public List<ChatRoomResponse> getChatRooms(Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long currentUserId = userDetails.getUserId();
+
+        return chatService.getChatRooms(currentUserId);
     }
 
     @GetMapping("/rooms/{roomId}/messages")
