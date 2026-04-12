@@ -1,16 +1,18 @@
 package com.fitally.backend.dto.chat.response;
 
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
+@NoArgsConstructor
 public class ChatMessageResponse {
 
     private Long messageId;
     private Long roomId;
     private Long senderId;
-    private String senderNickName;
+    private String senderNickname;
     private String senderProfileImageUrl;
     private String messageText;
     private String imageUrl;
@@ -30,7 +32,7 @@ public class ChatMessageResponse {
     }
 
     public String getSenderNickname() {
-        return senderNickName;
+        return senderNickname;
     }
 
     public String getSenderProfileImageUrl() {
