@@ -11,6 +11,11 @@ spring:
     apple:
       audience: ${APPLE_AUDIENCE}
 
+chat:
+  image:
+    upload-dir: uploads/chat
+    access-url-prefix: /chat-images
+
 jwt:
   access-token-expiration: 3600000
   refresh-token-expiration: 1209600000

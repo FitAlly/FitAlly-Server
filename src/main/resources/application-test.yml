@@ -25,6 +25,11 @@ spring:
     apple:
       audience: test.apple.audience
 
+chat:
+  image:
+    upload-dir: uploads/chat
+    access-url-prefix: /chat-images
+
 jwt:
   secret: your-test-secret-key-your-test-secret-key-123456
   access-token-expiration: 3600000

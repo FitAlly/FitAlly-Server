@@ -50,6 +50,11 @@ public enum ErrorCode {
     CHAT_OPPONENT_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_005", "상대 사용자를 찾을 수 없습니다."),
     CHAT_SENDER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHAT_006", "발신자를 찾을 수 없습니다."),
     CHAT_USER_NOT_FOUND(HttpStatus.NOT_FOUND,"CHAT_007", "사용자를 찾을 수 없습니다."),
+    CHAT_IMAGE_EMPTY(HttpStatus.BAD_REQUEST,"CHAT_008", "채팅 이미지 파일이 비어 있습니다."),
+    CHAT_IMAGE_INVALID(HttpStatus.BAD_REQUEST,"CHAT_009","유효하지 않은 이미지 파일입니다."),
+    CHAT_IMAGE_EXTENSION_NOT_ALLOWED(HttpStatus.BAD_REQUEST,"CHAT_010","허용되지 않은 이미지 확장자입니다."),
+    CHAT_IMAGE_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE,"CHAT_011","이미지 파일 크기가 너무 큽니다."),
+    CHAT_IMAGE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR,"CHAT_012","채팅 이미지 업로드에 실패했습니다."),
 
     // 신고
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT_001", "신고 내역을 찾을 수 없습니다."),
