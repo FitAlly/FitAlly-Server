@@ -1,9 +1,6 @@
 package com.fitally.backend.dto.auth.request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,6 +26,7 @@ public class SignupRequest {
     @Size(min = 2, max = 50, message = "닉네임은 2자 이상 50자 이하로 입력해주세요.")
     private String nickname;
 
+    @NotNull(message = "생년월일은 필수입니다.")
     @Past(message = "생년월일은 오늘 이전 날짜여야 합니다.")
     private LocalDate birthdate;
 

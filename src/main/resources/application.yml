@@ -4,16 +4,20 @@ server:
 spring:
   application:
     name: backend
+  profiles:
+    active: local
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+  social:
+    apple:
+      audience: ${APPLE_AUDIENCE}
+
+chat:
+  image:
+    upload-dir: uploads/chat
+    access-url-prefix: /chat-images
 
 jwt:
-  secret: "this-is-a-very-long-key-for-fitally-jwt-token-example-1234567890"
   access-token-expiration: 3600000
   refresh-token-expiration: 1209600000
+  secret: ${JWT_SECRET:}
+
