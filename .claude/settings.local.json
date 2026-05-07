@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(find /c/FitAlly-Server/src/main/java/com/fitally/backend/controller -type f -name \"*.java\" -exec wc -c {} +)",
+      "Bash(grep:*)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/FitAlly-Server/**)",
+      "Bash(done)",
+      "Bash(xargs cat:*)"
+    ]
+  }
+}

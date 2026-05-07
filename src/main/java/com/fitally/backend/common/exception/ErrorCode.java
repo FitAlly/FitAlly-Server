@@ -39,6 +39,18 @@ public enum ErrorCode {
     INVALID_AUTHENTICATION_PRINCIPAL(HttpStatus.UNAUTHORIZED, "AUTH_016", "인증 사용자 정보를 확인할 수 없습니다."),
     WEBSOCKET_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH_017", "웹소켓 인증이 필요합니다."),
 
+    // 운동
+    EXERCISE_NOT_FOUND(HttpStatus.NOT_FOUND, "EXERCISE_001", "존재하지 않는 운동입니다."),
+
+    // 루틴
+    ROUTINE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_001", "존재하지 않는 루틴입니다."),
+
+    // 세션
+    SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_001", "존재하지 않는 세션입니다."),
+    SESSION_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST, "SESSION_002", "이미 완료된 세션입니다."),
+    SESSION_NO_CURRENT_EXERCISE(HttpStatus.BAD_REQUEST, "SESSION_003", "진행 중인 운동이 없습니다."),
+    ROUTINE_EXERCISE_NOT_FOUND(HttpStatus.NOT_FOUND, "SESSION_004", "존재하지 않는 운동 항목입니다."),
+
     // 프로필
     PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "WORKOUT_001", "프로필 정보를 찾을 수 없습니다."),
 
